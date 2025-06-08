@@ -22,6 +22,7 @@ const Table = ({
   paginationStyle = {},
   noDataMessage = "No data available",
   itemsPerPage, // Kept for backward compatibility if needed, but defaultRowsPerPage is preferred
+  printQr,
 }) => {
   const initialRowsPerPage = itemsPerPage || defaultRowsPerPage;
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -64,7 +65,7 @@ const Table = ({
   }, [data, currentPage, rowsPerPage, isServerSide, totalRows]);
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && (newPage <= totalPages || totalPages === 0) ) {
+    if (newPage >= 1 && (newPage <= totalPages || totalPages === 0)) {
       setCurrentPage(newPage);
       if (isServerSide && onPageChange) {
         onPageChange(newPage, rowsPerPage);
@@ -75,7 +76,7 @@ const Table = ({
   const handleRowsPerPageChange = (newRowsPerPage) => {
     const currentDataLength = data?.length || 0;
     const effectiveTotalRows = isServerSide ? totalRows : currentDataLength;
-    
+
     const newTotalPages = newRowsPerPage === Infinity ? (effectiveTotalRows > 0 ? 1 : 0) : Math.ceil(effectiveTotalRows / newRowsPerPage);
     let newCurrentPage = currentPage;
 
@@ -100,7 +101,7 @@ const Table = ({
   const renderHeader = () => (
     <View style={[styles.tableHeader, headerStyle]}>
       {columns.map((col, index) => (
-        <Text key={index} style={[styles.headerCell, headerTextStyle, col.flex ? { flex: col.flex } : col.width ? { width: col.width } : {flex:1}]}>
+        <Text key={index} style={[styles.headerCell, headerTextStyle, col.flex ? { flex: col.flex } : col.width ? { width: col.width } : { flex: 1 }]}>
           {col.label}
         </Text>
       ))}
@@ -112,13 +113,14 @@ const Table = ({
     return (
       <View key={item.id || rowIndex} style={[styles.tableRow, rowStyle]}>
         {columns.map((col, colIndex) => (
-          <View key={colIndex} style={[styles.cellContainer, cellStyle, col.flex ? { flex: col.flex } : col.width ? { width: col.width } : {flex:1}]}>
+          <View key={colIndex} style={[styles.cellContainer, cellStyle, col.flex ? { flex: col.flex } : col.width ? { width: col.width } : { flex: 1 }]}>
             {col.key === 'serial' ? (
               <Text style={[styles.cell, rowTextStyle]} numberOfLines={2}>
                 {String(actualIndex + 1).padStart(2, '0')}
               </Text>
             ) : col.key === 'print' ? (
-              <TouchableOpacity style={styles.reprintBtn} onPress={() => col.onPress ? col.onPress(item) : {}}>
+              // <TouchableOpacity style={styles.reprintBtn} onPress={() => col.onPress ? col.onPress(item) : {}}>
+              <TouchableOpacity style={styles.reprintBtn} onPress={()=> printQr(item)}>
                 <Text style={styles.reprintBtnText}>Reprint</Text>
               </TouchableOpacity>
             ) : (
@@ -183,7 +185,7 @@ const Table = ({
               <Text key={`ellipsis-${index}`} style={styles.ellipsisStyle}>...</Text>
             ) : (
               <TouchableOpacity key={page} onPress={() => handlePageChange(page)} disabled={rowsPerPage === Infinity}>
-                <Text style={[styles.pageNumber, currentPage === page && styles.activePage, (rowsPerPage === Infinity && page !==1) && styles.disabledPageControl]}>{page}</Text>
+                <Text style={[styles.pageNumber, currentPage === page && styles.activePage, (rowsPerPage === Infinity && page !== 1) && styles.disabledPageControl]}>{page}</Text>
               </TouchableOpacity>
             )
           )}

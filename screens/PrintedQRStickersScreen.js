@@ -5,7 +5,7 @@ import {
   Keyboard, Platform, ScrollView, Modal, FlatList,
   PermissionsAndroid, ActivityIndicator, Alert, DeviceEventEmitter, ToastAndroid
 } from 'react-native';
-import { BluetoothManager } from 'react-native-bluetooth-escpos-printer';
+import { BluetoothManager, BluetoothEscposPrinter } from 'react-native-bluetooth-escpos-printer';
 import Table from '../components/Table';
 import { COLORS } from '../constants/colors';
 import theme from '../constants/theme';
@@ -116,6 +116,31 @@ const PrintedQRStickersScreen = () => {
     }
   };
 
+
+  // Sample QR Printer
+
+  const formatQRContent = (data) => {
+    return `Date: ${data.date}\nInvoice No: ${data.invoiceNo}\nQty: ${data.qty}`;
+  };
+
+  const printQr = async (invData) => {
+    try {
+      const content = formatQRContent(invData);
+
+      await BluetoothEscposPrinter.printText("\n", {});
+      await BluetoothEscposPrinter.printQRCode(
+        content,
+        280,
+        BluetoothEscposPrinter.ERROR_CORRECTION.L
+      );
+      await BluetoothEscposPrinter.printText("\n\n", {});
+
+      console.log("QR printed!");
+    } catch (error) {
+      console.log("Printer error: ", error);
+    }
+  };
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -146,7 +171,7 @@ const PrintedQRStickersScreen = () => {
             </View>
           </View>
 
-          <Table data={tableData} columns={columns} />
+          <Table data={tableData} columns={columns} printQr={printQr} />
 
           {/* Modal to show devices */}
           <Modal visible={modalVisible} transparent animationType="slide">
